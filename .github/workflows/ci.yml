@@ -19,10 +19,11 @@ jobs:
           distribution: 'adopt'
           java-version: '11'
 
-      - name: Build with Gradle
-        run: ./gradlew build  # Gradle로 빌드
-
       - name: Deploy to EC2  # EC2 서버에 배포
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}  # GitHub Secrets에서 SSH 키 불러오기
         run: |
-          scp -i /path/to/key.pem ./build/libs/demo-0.0.1-SNAPSHOT.jar ec2-user@3.36.70.225:/home/ec2-user/
-          ssh -i /path/to/key.pem ec2-user@3.36.70.225 "nohup java -jar /home/ec2-user/demo-0.0.1-SNAPSHOT.jar > log.txt 2>&1 &"
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          scp -i ~/.ssh/id_rsa ./build/libs/demo-0.0.1-SNAPSHOT.jar ec2-user@3.36.70.225:/home/ec2-user/
+          ssh -i ~/.ssh/id_rsa ec2-user@3.36.70.225 "nohup java -jar /home/ec2-user/demo-0.0.1-SNAPSHOT.jar > log.txt 2>&1 &"
